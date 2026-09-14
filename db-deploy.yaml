@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-stateful
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector: 
+    matchLabels:
+      db: mysql
+  template:
+    metadata:
+      labels:
+        db: mysql
+    spec:
+      containers:
+        - name: myshot-sql
+          image: mysql:8.0
+          envFrom:
+            - configMapRef:
+                name: mysql-config
+            - secretRef:
+                name: mysql-secret
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql
+      spec:
+        storageClassName: local-path
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 500Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  clusterIP: None
+  selector:
+    db: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
