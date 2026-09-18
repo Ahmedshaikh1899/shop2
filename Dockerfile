@@ -1,10 +1,11 @@
-FROM jenkins/jenkins:lts
+FROM php:8.2-apache
 
-# Skip the setup wizard if desired
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+RUN docker-php-ext-install pdo_mysql
 
-# Copy the plugin list into the image
-COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+WORKDIR /var/www/html
 
-# Automatically download all parent plugins and their recursive sub-dependencies
-RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+COPY web/ .
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]
